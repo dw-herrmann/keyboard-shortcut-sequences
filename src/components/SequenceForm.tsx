@@ -11,7 +11,7 @@ import {
   useNavigation,
 } from "@raycast/api";
 import { useState } from "react";
-import { Sequence } from "../types";
+import { Sequence, specialKeys } from "../types";
 
 export default function SequenceForm(props: {
   sequence?: Sequence;
@@ -20,12 +20,17 @@ export default function SequenceForm(props: {
   const { sequence, setSequences } = props;
   const [nameError, setNameError] = useState<string>();
   const [shortcutCount, setShortcutCount] = useState<number>(sequence ? sequence.shortcuts.length : 1);
-  const [countError, setCountError] = useState<string>();
   const [shortcutKeys, setShortcutKeys] = useState<string[]>(
     sequence ? sequence.shortcuts.map((shortcut) => shortcut.keystrokes) : []
   );
   const [shortcutModifiers, setShortcutModifiers] = useState<string[][]>(
     sequence ? sequence.shortcuts.map((shortcut) => shortcut.modifiers) : [[]]
+  );
+  const [shortcutSpecials, setShortcutSpecials] = useState<string[][]>(
+    sequence ? sequence.shortcuts.map((shortcut) => shortcut.specials) : [[]]
+  );
+  const [shortcutDelays, setShortcutDelays] = useState<number[]>(
+    sequence ? sequence.shortcuts.map((shortcut) => shortcut.delay || 500) : [500]
   );
 
   const { pop } = useNavigation();
@@ -39,56 +44,74 @@ export default function SequenceForm(props: {
     return true;
   };
 
-  const updateCount = (count?: string): boolean => {
-    if (!count?.length) {
-      setCountError("Must configure at least 1 shortcut");
-      return false;
-    } else if (!parseInt(count) || parseInt(count) < 1) {
-      setCountError("Count must be a positive integer");
-      return false;
-    }
-    setCountError(undefined);
-
-    const intValue = parseInt(count);
-    setShortcutCount(intValue);
-    const newShortcutKeys = [...shortcutKeys.slice(0, intValue)];
-    const newShortcutModifiers = [...shortcutModifiers.slice(0, intValue)];
-    while (newShortcutKeys.length < intValue) {
-      newShortcutKeys.push("");
-      newShortcutModifiers.push([]);
-    }
-    setShortcutKeys(newShortcutKeys);
-    setShortcutModifiers(newShortcutModifiers);
-    return true;
-  };
-
   const shortcutFormFields: React.ReactElement[] = [];
   for (let index = 0; index < shortcutCount; index++) {
     shortcutFormFields.push(<Form.Separator key={`separator${index}`} />);
-    shortcutFormFields.push(
-      <Form.Description
-        key={`description${index}`}
-        title={`Shortcut #${index + 1}:`}
-        text={index == 0 ? "The first keyboard shortcut to execute" : ""}
-      />
-    );
 
     shortcutFormFields.push(
       <Form.TextField
-        id={`shortcutKeys${index}`}
-        key={`keystrokes${index}`}
-        title="Keystrokes"
-        placeholder="Keys to stroke"
-        defaultValue={shortcutKeys[index]}
-        info="The non-modifier keys to stroke as one contiguous string. For example, for the keyboard shortcut Command+A, the keystroke would be A. For Shift+Command+D, the keyboard would be D. This can also be an ASCII key code, e.g. 'ASCII character 31' (no quotes in input). You could also use key codes, e.g. 'key code 123' for left d-pad keystroke."
+        id={`delay${index}`}
+        key={`delay${index}`}
+        title={`#${index + 1} – Delay (ms)`}
+        placeholder="Delay before next shortcut (default 500ms)"
+        defaultValue={shortcutDelays[index]?.toString()}
+        info="The delay in milliseconds before the next shortcut in the sequence is run."
         onChange={(value) => {
-          const newShortcutKeys = [...shortcutKeys];
-          newShortcutKeys[index] = value || "";
-          setShortcutKeys(newShortcutKeys);
+          const newShortcutDelays = [...shortcutDelays];
+          newShortcutDelays[index] = parseInt(value) || 500;
+          setShortcutDelays(newShortcutDelays);
         }}
       />
     );
 
+    {
+      !shortcutSpecials[index]?.length &&
+        shortcutFormFields.push(
+          <Form.TextField
+            id={`shortcutKeys${index}`}
+            key={`keystrokes${index}`}
+            title="Keystrokes"
+            placeholder="Keys to stroke (only if no special keys selected)"
+            defaultValue={shortcutKeys[index]}
+            info="The non-modifier keys to stroke as one contiguous string. For example, for the keyboard shortcut Command+A, the keystroke would be A. For Shift+Command+D, the keyboard would be D. This can also be an ASCII key code, e.g. 'ASCII character 31' (no quotes in input). You could also use key codes, e.g. 'key code 123' for left d-pad keystroke."
+            onChange={(value) => {
+              const newShortcutKeys = [...shortcutKeys];
+              newShortcutKeys[index] = value || "";
+              setShortcutKeys(newShortcutKeys);
+            }}
+          />
+        );
+    }
+
+    {
+      !shortcutKeys[index]?.length &&
+        shortcutFormFields.push(
+          <Form.TagPicker
+            id={`shortcutSpecials${index}`}
+            key={`specials${index}`}
+            title="Special Keys"
+            defaultValue={shortcutSpecials[index]}
+            placeholder="Select special keys (only if no keystrokes entered)"
+            info="The special keys to stroke"
+            onChange={(value) => {
+              const newShortcutSpecials = [...shortcutSpecials];
+              newShortcutSpecials[index] = value;
+              setShortcutSpecials(newShortcutSpecials);
+            }}
+          >
+            {specialKeys && Object.keys(specialKeys).length
+              ? Object.entries(specialKeys).map((entry) => (
+                  <Form.TagPicker.Item
+                    value={entry[0]}
+                    title={entry[0]}
+                    icon={{ source: Icon.Circle, tintColor: Color.Magenta }}
+                    key={entry[0]}
+                  />
+                ))
+              : null}
+          </Form.TagPicker>
+        );
+    }
     shortcutFormFields.push(
       <Form.TagPicker
         id={`shortcutModifiers${index}`}
@@ -142,6 +165,8 @@ export default function SequenceForm(props: {
                 return {
                   keystrokes: keys,
                   modifiers: shortcutModifiers[index],
+                  specials: shortcutSpecials[index],
+                  delay: shortcutDelays[index],
                 };
               });
 
@@ -206,16 +231,35 @@ export default function SequenceForm(props: {
         info="A description of this shortcut sequence to help you and others know what it does."
       />
 
-      <Form.TextField
-        id="sequenceShortcutCount"
-        title="Number of Shortcuts"
-        defaultValue={shortcutCount.toString()}
-        info="The number of shortcuts that this shortcut sequence will run sequentially."
-        error={countError}
-        onChange={(value) => updateCount(value)}
-      />
-
       {shortcutFormFields}
+
+      <Form.Separator />
+      <Form.Description title="Add/Remove Shortcuts" text="Use the buttons below to add or remove shortcuts." />
+      <Form.Dropdown
+        title="Add/Remove Shortcuts"
+        id="editShortcuts"
+        value="placeholder"
+        info="Use the selection to add or remove shortcuts from the sequence."
+        onChange={(value) => {
+          if (value === "add") {
+            setShortcutCount(shortcutCount + 1);
+            setShortcutKeys([...shortcutKeys, ""]);
+            setShortcutModifiers([...shortcutModifiers, []]);
+            setShortcutSpecials([...shortcutSpecials, []]);
+          } else if (value === "remove" && shortcutCount > 1) {
+            setShortcutCount(shortcutCount - 1);
+            setShortcutKeys(shortcutKeys.slice(0, -1));
+            setShortcutModifiers(shortcutModifiers.slice(0, -1));
+            setShortcutSpecials(shortcutSpecials.slice(0, -1));
+          }
+        }}
+      >
+        <Form.Dropdown.Item title="Edit Shortcuts" value="placeholder" icon={Icon.Pencil} />
+        <Form.Dropdown.Item title="Add new" value="add" icon={Icon.Plus} />
+        {shortcutCount > 1 && (
+          <Form.Dropdown.Item title={`Remove last (#${shortcutCount})`} value="remove" icon={Icon.Trash} />
+        )}
+      </Form.Dropdown>
     </Form>
   );
 }
