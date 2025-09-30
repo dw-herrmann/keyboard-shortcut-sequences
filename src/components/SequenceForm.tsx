@@ -29,9 +29,10 @@ export default function SequenceForm(props: {
   const [shortcutSpecials, setShortcutSpecials] = useState<string[][]>(
     sequence ? sequence.shortcuts.map((shortcut) => shortcut.specials) : [[]]
   );
-  const [shortcutDelays, setShortcutDelays] = useState<number[]>(
-    sequence ? sequence.shortcuts.map((shortcut) => shortcut.delay || 500) : [500]
+  const [shortcutDelays, setShortcutDelays] = useState<(number | undefined)[]>(
+    sequence ? sequence.shortcuts.map((shortcut) => shortcut.delay) : [undefined]
   );
+  const [delayErrors, setDelayErrors] = useState<(string | undefined)[]>([]);
 
   const { pop } = useNavigation();
 
@@ -57,10 +58,23 @@ export default function SequenceForm(props: {
         defaultValue={shortcutDelays[index]?.toString()}
         info="The delay in milliseconds before the next shortcut in the sequence is run."
         onChange={(value) => {
+          if (value.length > 0 && !/^\d+$/.test(value))
+            return setDelayErrors((prev) => {
+              const newErrors = [...prev];
+              newErrors[index] = "Delay must be a positive integer";
+              return newErrors;
+            });
+          setDelayErrors((prev) => {
+            const newErrors = [...prev];
+            newErrors[index] = undefined;
+            return newErrors;
+          });
+
           const newShortcutDelays = [...shortcutDelays];
-          newShortcutDelays[index] = parseInt(value) || 500;
+          newShortcutDelays[index] = parseInt(value) || undefined;
           setShortcutDelays(newShortcutDelays);
         }}
+        error={delayErrors[index]}
       />
     );
 
