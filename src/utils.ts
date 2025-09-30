@@ -17,17 +17,22 @@ export const runShortcutSequence = async (sequence: Sequence) => {
       }
       return `"${shortcut.keystrokes}"`;
     })();
-    const specials = shortcut.specials
-      .map((special) => {
-        return specialKeys[special];
-      })
-      .join(", ");
+
+    const specials =
+      shortcut.specials?.length &&
+      "key code {" +
+        shortcut.specials
+          .map((special) => {
+            return specialKeys[special];
+          })
+          .join(", ") +
+        "}";
     const modifier = shortcut.modifiers.length
       ? `using ${shortcut.modifiers.length > 1 ? `[${shortcut.modifiers.join(", ")}]` : shortcut.modifiers[0]}`
       : "";
     const script = `tell application "${currentApplication.name}"
         tell application "System Events"
-          ${specials.length ? `${specials} ${modifier}` : `keystroke ${keystroke} ${modifier}`}
+          ${specials ? `${specials}` : `keystroke ${keystroke}`} ${modifier}
         end tell
       end tell`;
     await runAppleScript(script);
