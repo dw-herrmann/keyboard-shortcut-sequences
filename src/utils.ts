@@ -19,14 +19,11 @@ export const runShortcutSequence = async (sequence: Sequence) => {
     })();
 
     const specials =
-      shortcut.specials?.length &&
-      "key code {" +
-        shortcut.specials
-          .map((special) => {
-            return specialKeys[special];
-          })
-          .join(", ") +
-        "}";
+      shortcut.specials.length > 1
+        ? `key code {${shortcut.specials.map((key) => specialKeys[key]).join(", ")}}`
+        : shortcut.specials.length === 1
+        ? `key code ${specialKeys[shortcut.specials[0]]}`
+        : "";
     const modifier = shortcut.modifiers.length
       ? `using ${shortcut.modifiers.length > 1 ? `[${shortcut.modifiers.join(", ")}]` : shortcut.modifiers[0]}`
       : "";
