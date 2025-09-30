@@ -52,8 +52,8 @@ export default function SequenceForm(props: {
       <Form.TextField
         id={`delay${index}`}
         key={`delay${index}`}
-        title={`#${index + 1} – Delay (ms)`}
-        placeholder="Delay before next shortcut (default 500ms)"
+        title={`Shortcut #${index + 1} – Delay (ms)`}
+        placeholder="… delay before execution"
         defaultValue={shortcutDelays[index]?.toString()}
         info="The delay in milliseconds before the next shortcut in the sequence is run."
         onChange={(value) => {
@@ -71,7 +71,7 @@ export default function SequenceForm(props: {
             id={`shortcutKeys${index}`}
             key={`keystrokes${index}`}
             title="Keystrokes"
-            placeholder="Keys to stroke (only if no special keys selected)"
+            placeholder={`Keystrokes, "ASCII character ..." or "key code ..."`}
             defaultValue={shortcutKeys[index]}
             info="The non-modifier keys to stroke as one contiguous string. For example, for the keyboard shortcut Command+A, the keystroke would be A. For Shift+Command+D, the keyboard would be D. This can also be an ASCII key code, e.g. 'ASCII character 31' (no quotes in input). You could also use key codes, e.g. 'key code 123' for left d-pad keystroke."
             onChange={(value) => {
@@ -91,7 +91,7 @@ export default function SequenceForm(props: {
             key={`specials${index}`}
             title="Special Keys"
             defaultValue={shortcutSpecials[index]}
-            placeholder="Select special keys (only if no keystrokes entered)"
+            placeholder="Special Keys, based on key codes"
             info="The special keys to stroke"
             onChange={(value) => {
               const newShortcutSpecials = [...shortcutSpecials];
@@ -234,7 +234,6 @@ export default function SequenceForm(props: {
       {shortcutFormFields}
 
       <Form.Separator />
-      <Form.Description title="Add/Remove Shortcuts" text="Use the buttons below to add or remove shortcuts." />
       <Form.Dropdown
         title="Add/Remove Shortcuts"
         id="editShortcuts"
@@ -257,7 +256,7 @@ export default function SequenceForm(props: {
         <Form.Dropdown.Item title="Edit Shortcuts" value="placeholder" icon={Icon.Pencil} />
         <Form.Dropdown.Item title="Add new" value="add" icon={Icon.Plus} />
         {shortcutCount > 1 && (
-          <Form.Dropdown.Item title={`Remove last (#${shortcutCount})`} value="remove" icon={Icon.Trash} />
+          <Form.Dropdown.Item title={`Remove last (Shortcut #${shortcutCount})`} value="remove" icon={Icon.Trash} />
         )}
       </Form.Dropdown>
     </Form>
