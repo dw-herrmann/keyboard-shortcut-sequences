@@ -176,14 +176,15 @@ export default function SequenceForm(props: {
                 return;
               }
 
-              const shortcuts = shortcutKeys.map((keys, index) => {
-                return {
-                  keystrokes: keys,
-                  modifiers: shortcutModifiers[index],
-                  specials: shortcutSpecials[index],
+              const shortcuts = [];
+              for (let index = 0; index < shortcutCount; index++) {
+                shortcuts.push({
+                  keystrokes: shortcutKeys[index] || "",
+                  modifiers: shortcutModifiers[index] || [],
+                  specials: shortcutSpecials[index] || [],
                   delay: shortcutDelays[index],
-                };
-              });
+                });
+              }
 
               const newSequence = {
                 name: values.sequenceNameField,
