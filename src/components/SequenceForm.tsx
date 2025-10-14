@@ -159,6 +159,7 @@ export default function SequenceForm(props: {
           title="shift down"
           icon={{ source: Icon.Circle, tintColor: Color.Yellow }}
         />
+        <Form.TagPicker.Item value="fn down" title="fn down" icon={{ source: Icon.Circle, tintColor: Color.Purple }} />
       </Form.TagPicker>
     );
   }
