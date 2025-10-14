@@ -2,6 +2,8 @@ import { getFrontmostApplication, showHUD } from "@raycast/api";
 import { runAppleScript } from "run-applescript";
 import { Sequence, specialKeys } from "./types";
 
+const FN_KEY_CODE = "63";
+
 export const runShortcutSequence = async (sequence: Sequence) => {
   /* Runs each shortcut of a sequence in rapid succession. */
   const currentApplication = await getFrontmostApplication();
@@ -24,14 +26,33 @@ export const runShortcutSequence = async (sequence: Sequence) => {
         : shortcut.specials.length === 1
         ? `key code ${specialKeys[shortcut.specials[0]]}`
         : "";
-    const modifier = shortcut.modifiers.length
-      ? `using ${shortcut.modifiers.length > 1 ? `[${shortcut.modifiers.join(", ")}]` : shortcut.modifiers[0]}`
+    const hasFnModifier = shortcut.modifiers.includes("fn down");
+    const regularModifiers = shortcut.modifiers.filter((mod) => mod !== "fn down");
+
+    const modifier = regularModifiers.length
+      ? `using ${regularModifiers.length > 1 ? `{${regularModifiers.join(", ")}}` : regularModifiers[0]}`
       : "";
-    const script = `tell application "${currentApplication.name}"
+
+    // Build the script with or without fn key
+    let script;
+    if (hasFnModifier) {
+      // When fn is needed, use key down/up approach
+      script = `tell application "${currentApplication.name}"
+        tell application "System Events"
+          key down ${FN_KEY_CODE}
+          ${specials ? `${specials}` : `keystroke ${keystroke}`} ${modifier}
+          key up ${FN_KEY_CODE}
+        end tell
+      end tell`;
+    } else {
+      // Normal approach without fn
+      script = `tell application "${currentApplication.name}"
         tell application "System Events"
           ${specials ? `${specials}` : `keystroke ${keystroke}`} ${modifier}
         end tell
       end tell`;
+    }
+
     await runAppleScript(script);
   });
   await showHUD(`Ran Shortcut Sequence: ${sequence.name}`);

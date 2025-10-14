@@ -57,7 +57,7 @@ export const specialKeys = {
 
 export interface Shortcut {
   keystrokes: string;
-  modifiers: ("command down" | "control down" | "option down" | "shift down")[];
+  modifiers: ("command down" | "control down" | "option down" | "shift down" | "fn down")[];
   specials: (keyof typeof specialKeys)[];
   delay: number | undefined;
 }
