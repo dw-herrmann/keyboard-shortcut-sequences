@@ -261,11 +261,13 @@ export default function SequenceForm(props: {
             setShortcutKeys([...shortcutKeys, ""]);
             setShortcutModifiers([...shortcutModifiers, []]);
             setShortcutSpecials([...shortcutSpecials, []]);
+            setShortcutDelays([...shortcutDelays, undefined]);
           } else if (value === "remove" && shortcutCount > 1) {
             setShortcutCount(shortcutCount - 1);
             setShortcutKeys(shortcutKeys.slice(0, -1));
             setShortcutModifiers(shortcutModifiers.slice(0, -1));
             setShortcutSpecials(shortcutSpecials.slice(0, -1));
+            setShortcutDelays(shortcutDelays.slice(0, -1));
           }
         }}
       >
