@@ -7,8 +7,10 @@ const FN_KEY_CODE = "63";
 export const runShortcutSequence = async (sequence: Sequence) => {
   /* Runs each shortcut of a sequence in rapid succession. */
   const currentApplication = await getFrontmostApplication();
-  sequence.shortcuts.forEach(async (shortcut, index) => {
-    const delay = sequence.shortcuts.slice(0, index + 1).reduce((acc, curr) => acc + (curr.delay || 0), 0);
+
+  // Hide Raycast overlay immediately
+  await showHUD(`Running: ${sequence.name}`);
+
     await new Promise((resolve) => setTimeout(resolve, delay));
     const keystroke = (function getKeystroke() {
       if (shortcut.keystrokes.includes("ASCII character")) {
@@ -54,6 +56,6 @@ export const runShortcutSequence = async (sequence: Sequence) => {
     }
 
     await runAppleScript(script);
-  });
-  await showHUD(`Ran Shortcut Sequence: ${sequence.name}`);
+  }
+  await showHUD(`Sequence ${sequence.name} finished`);
 };
