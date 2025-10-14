@@ -11,7 +11,10 @@ export const runShortcutSequence = async (sequence: Sequence) => {
   // Hide Raycast overlay immediately
   await showHUD(`Running: ${sequence.name}`);
 
+  for (const shortcut of sequence.shortcuts) {
+    const delay = shortcut.delay || 0;
     await new Promise((resolve) => setTimeout(resolve, delay));
+
     const keystroke = (function getKeystroke() {
       if (shortcut.keystrokes.includes("ASCII character")) {
         return `(${shortcut.keystrokes})`;
