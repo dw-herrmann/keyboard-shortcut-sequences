@@ -26,11 +26,12 @@ export const runShortcutSequence = async (sequence: Sequence) => {
     })();
 
     const specials =
-      shortcut.specials.length > 1
+      shortcut.specials?.length > 1
         ? `key code {${shortcut.specials.map((key) => specialKeys[key]).join(", ")}}`
-        : shortcut.specials.length === 1
+        : shortcut.specials?.length === 1
         ? `key code ${specialKeys[shortcut.specials[0]]}`
         : "";
+
     const hasFnModifier = shortcut.modifiers.includes("fn down");
     const regularModifiers = shortcut.modifiers.filter((mod) => mod !== "fn down");
 
