@@ -10,7 +10,7 @@ import {
   showToast,
   useNavigation,
 } from "@raycast/api";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Sequence, specialKeys } from "../types";
 
 export default function SequenceForm(props: {
@@ -164,6 +164,8 @@ export default function SequenceForm(props: {
     );
   }
 
+  const dropdownShortcutsRef = useRef<Form.ItemReference | null>(null);
+
   return (
     <Form
       actions={
@@ -255,6 +257,7 @@ export default function SequenceForm(props: {
         id="editShortcuts"
         value="placeholder"
         info="Use the selection to add or remove shortcuts from the sequence."
+        ref={dropdownShortcutsRef}
         onChange={(value) => {
           if (value === "add") {
             setShortcutCount(shortcutCount + 1);
@@ -269,6 +272,9 @@ export default function SequenceForm(props: {
             setShortcutSpecials(shortcutSpecials.slice(0, -1));
             setShortcutDelays(shortcutDelays.slice(0, -1));
           }
+
+          // Reset to initial value
+          dropdownShortcutsRef.current?.reset();
         }}
       >
         <Form.Dropdown.Item title="Edit Shortcuts" value="placeholder" icon={Icon.Pencil} />
